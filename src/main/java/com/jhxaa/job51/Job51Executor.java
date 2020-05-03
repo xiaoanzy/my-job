@@ -50,7 +50,7 @@ public class Job51Executor {
     public static void main(String[] args) throws IOException {
         long s, e;
         s = System.currentTimeMillis();
-        String userName = "czjhxa@163.com", passWord = "AaLl!@1076418191";
+        String userName = "", passWord = "";
         Connection.Response response = doLogin(userName, passWord);
         Document parse = Jsoup.parse(response.body());
         Job51Data.setCookies(response.cookies());//设置用户状态
