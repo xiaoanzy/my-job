@@ -50,7 +50,7 @@ public class Job51Executor {
     public static void main(String[] args) throws IOException {
         long s, e;
         s = System.currentTimeMillis();
-        String userName = "", passWord = "";
+        String userName = "czjhxa@163.com", passWord = "AaLl!@1076418191";
         Connection.Response response = doLogin(userName, passWord);
         Document parse = Jsoup.parse(response.body());
         Job51Data.setCookies(response.cookies());//设置用户状态
@@ -59,7 +59,7 @@ public class Job51Executor {
         Job51Data.setUserName(parse.getElementsByClass("uname e_icon at").text());//设置用户名称
         Job51Data.setSendCount(getSendCount(parse));
         String searchName = "java";
-        collectBySearchResultName(searchName, 1, 1);
+        collectBySearchResultName(searchName, 1, 3);
         System.out.println(job51IdQueue.size());
         filterSearchList();
         System.out.println(job51IdQueue.size());
@@ -75,6 +75,28 @@ public class Job51Executor {
         return text;
     }
 
+
+    /**
+     * 设置提交数据请求头
+     *
+     * @return
+     */
+    private static Map getSubmitHeader() {
+        HashMap<String, String> hashMap = new HashMap<String, String>();
+//        hashMap.put("Host", "login.51job.com");
+//        hashMap.put("Referer", "https://login.51job.com");
+        hashMap.put("Host", "i.51job.com");
+        hashMap.put("Connection", "keep-alive");
+        hashMap.put("Accept-Language", "zh-CN,zh;q=0.9");
+        hashMap.put("Accept-Encoding", "gzip, deflate, br");
+        hashMap.put("Sec-Fetch-Site", "same-site");
+        hashMap.put("Sec-Fetch-Mode", "no-cors");
+        hashMap.put("Sec-Fetch-Dest", "script");
+        hashMap.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.9 Safari/537.36");
+        hashMap.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9;charset=utf-8");
+        return hashMap;
+    }
+
     /**
      * 投简历操作
      */
@@ -86,14 +108,7 @@ public class Job51Executor {
             body = NetUtil.doGet(submit);
             body = Jsoup.connect(submit)
                     .cookies(Job51Data.getCookies())
-                    .header("Host", "i.51job.com")
-                    .header("Connection", "keep-alive")
-                    .header("Accept-Language", "zh-CN,zh;q=0.9")
-                    .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Sec-Fetch-Site", "same-site")
-                    .header("Sec-Fetch-Mode", "no-cors")
-                    .header("Sec-Fetch-Dest", "script")
-                    .headers(getHeader())
+                    .headers(getSubmitHeader())
 //                    .data(getTestData())
                     .ignoreContentType(true)
                     .method(Connection.Method.GET)
@@ -110,7 +125,6 @@ public class Job51Executor {
                 .replace("</span>", "").trim();
         System.out.println(center);
     }
-
 
     /**
      * 过滤无效的id
