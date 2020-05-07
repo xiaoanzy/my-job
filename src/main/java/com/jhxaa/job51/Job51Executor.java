@@ -21,6 +21,7 @@ public class Job51Executor {
     private static Map<String, String> urlMap = new HashMap<>();
     private static Queue<String> job51IdQueue = new LinkedBlockingQueue<>();
     private static List<String> disableList = FileUtil.readFileByLines("./config/filter.config");
+    private static List<String> urlList = new ArrayList<>();
 
     static {
         init();
@@ -41,6 +42,25 @@ public class Job51Executor {
     }
 
     /**
+     * 已有cookies登录
+     *
+     * @return
+     */
+    private static Map strToCookies() {
+        ArrayList<String> list = FileUtil.readFileByLines("config/cookies.config");
+        HashMap<String, String> map = new HashMap<>();
+        for (String s : list) {
+            String[] split = s.split("; ");
+            for (String s1 : split) {
+                String[] split1 = s1.split("=");
+//                System.out.println(JSON.toJSONString(split1));
+                map.put(split1[0], split1[1]);
+            }
+        }
+        return map;
+    }
+
+    /**
      * 初始化
      */
     private static void init() {
@@ -50,32 +70,67 @@ public class Job51Executor {
     public static void main(String[] args) throws IOException {
         long s, e;
         s = System.currentTimeMillis();
-        String userName = "czjhxa@163.com", passWord = "AaLl!@1076418191";
-        Connection.Response response = doLogin(userName, passWord);
-        Document parse = Jsoup.parse(response.body());
-        System.out.println(parse);
-        Job51Data.setCookies(response.cookies());//设置用户状态
-        System.out.println(response.cookies());
-        Job51Data.setFindICount(getWhoLookingAtMe());//设置谁看过我
-        Job51Data.setUserName(parse.getElementsByClass("uname e_icon at").text());//设置用户名称
-        Job51Data.setSendCount(getSendCount(parse));
+        boolean isOk = true;
+        if (isOk) {
+            String userName = "", passWord = "";
+            Connection.Response response = doLogin(userName, passWord);
+            Document parse = Jsoup.parse(response.body());
+            Job51Data.setCookies(response.cookies());//设置用户状态
+            Job51Data.setFindICount(getWhoLookingAtMe());//设置谁看过我
+            Job51Data.setUserName(parse.getElementsByClass("uname e_icon at").text());//设置用户名称
+            Job51Data.setSendCount(getSendCount(parse));
+        } else {
+            Job51Data.setCookies(strToCookies());//设置用户状态
+        }
         String searchName = "java";
-        collectBySearchResultName(searchName, 1, 3);
-        System.out.println(job51IdQueue.size());
+        collectBySearchResultName(searchName, 1, 10);
+        System.out.println(String.format("已爬取数据%s条", job51IdQueue.size()));
         filterSearchList();
-        System.out.println(job51IdQueue.size());
-        // submitData();
+        System.out.println(String.format("清洗后数据%s条", job51IdQueue.size()));
+        submitData();
         e = System.currentTimeMillis();
         System.out.println("耗时间：" + (e - s));
     }
 
-    private static String getParams() {
-        String jobId = getJobId(job51IdQueue);
-        String text = "?rand=" + Math.random() + "&jsoncallback=jQuery18300098957260373327_" + System.currentTimeMillis() + "&jobid=" + getJobId(job51IdQueue) + "&prd=search.51job.com&prp=01&cd=search.51job.com&cp=01&resumeid=&cvlan=&coverid=&qpostset=&elementname=delivery_jobid&deliverytype=2&deliverydomain=%2F%2Fi.51job.com&language=c&imgpath=%2F%2Fimg03.51jobcdn.com&_=" + System.currentTimeMillis();
-        System.out.println(text);
-        return text;
+    private static String getParams(int index) {
+//        String jobId = getJobId(job51IdQueue);
+//        String text = "?rand=" + Math.random() + "&jsoncallback=jQuery18300098957260373327_" + System.currentTimeMillis() + "&jobid=" + getJobId(job51IdQueue) + "&prd=search.51job.com&prp=01&cd=search.51job.com&cp=01&resumeid=&cvlan=&coverid=&qpostset=&elementname=delivery_jobid&deliverytype=2&deliverydomain=%2F%2Fi.51job.com&language=c&imgpath=%2F%2Fimg03.51jobcdn.com&_=" + System.currentTimeMillis();
+//        System.out.println(text);
+
+        return urlList.get(index);
     }
 
+    /**
+     * 创建提交链接集合
+     */
+    private static void insertUrlList() {
+        LinkedList<String> linkedList = new LinkedList<>();
+        List<String> list = (LinkedList) job51IdQueue;
+        int length = list.size();
+        int num = 0;
+        for (int i = 0; i < length; i++) {
+            linkedList.add(list.get(i));
+            if (i % 30 == 0) {
+                num = num + i;
+                saveUrl(linkedList);
+                linkedList.clear();
+            }
+            if (length == i + 1) {
+                saveUrl(linkedList);
+            }
+        }
+    }
+
+    /**
+     * 保存提交集合
+     *
+     * @param list
+     */
+    private static void saveUrl(LinkedList<String> list) {
+        String jobId = getJobId(list);
+        String text = "?rand=" + Math.random() + "&jsoncallback=jQuery18300098957260373327_" + System.currentTimeMillis() + "&jobid=" + getJobId(job51IdQueue) + "&prd=search.51job.com&prp=01&cd=search.51job.com&cp=01&resumeid=&cvlan=&coverid=&qpostset=&elementname=delivery_jobid&deliverytype=2&deliverydomain=%2F%2Fi.51job.com&language=c&imgpath=%2F%2Fimg03.51jobcdn.com&_=" + System.currentTimeMillis();
+        urlList.add(text);
+    }
 
     /**
      * 设置提交数据请求头
@@ -102,29 +157,37 @@ public class Job51Executor {
      * 投简历操作
      */
     private static void submitData() {// map.put("jsoncallback", "jQuery183005098957260373327_1588261608907");
-        String submit = urlMap.get("submit") + getParams();
-        Document document = null;
-        String body = null;
-        try {
-            body = NetUtil.doGet(submit);
-            body = Jsoup.connect(submit)
-                    .cookies(Job51Data.getCookies())
-                    .headers(getSubmitHeader())
+        System.out.println("正在分批提交");
+        for (int i = 0; i < urlList.size(); i++) {
+            String submit = urlMap.get("submit") + getParams(i);
+            Document document = null;
+            String body = null;
+            try {
+                body = NetUtil.doGet(submit);
+                body = Jsoup.connect(submit)
+                        .cookies(Job51Data.getCookies())
+                        .headers(getSubmitHeader())
 //                    .data(getTestData())
-                    .ignoreContentType(true)
-                    .method(Connection.Method.GET)
-                    .execute().body();
-        } catch (Exception e) {
-            e.printStackTrace();
+                        .ignoreContentType(true)
+                        .method(Connection.Method.GET)
+                        .execute().body();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            JSONObject parseJSONP = parseJSONP(body);
+            String string = parseJSONP.getJSONObject("content").getJSONObject("content").getString("html");
+            Document parse = Jsoup.parse(string);
+            String center = parse.getElementsByClass("stage s2 center").html()
+                    .replace("<span>", "")
+                    .replace("<br>", "")
+                    .replace(" ", "")
+                    .replace("\n", "")
+                    .replace("\t", "")
+                    .replace(" ", "")
+                    .replace("</span>", "").trim();
+            System.out.println(center);
         }
-        JSONObject parseJSONP = parseJSONP(body);
-        String string = parseJSONP.getJSONObject("content").getJSONObject("content").getString("html");
-        Document parse = Jsoup.parse(string);
-        String center = parse.getElementsByClass("stage s2 center").html()
-                .replace("<span>", "")
-                .replace(" ", "")
-                .replace("</span>", "").trim();
-        System.out.println(center);
+        System.out.println("完成分批提交");
     }
 
     /**
@@ -134,11 +197,13 @@ public class Job51Executor {
         String detail = null;
         Element element = null;
         String html = null;
+        String jobId = null;
         Iterator<String> iterator = job51IdQueue.iterator();
         try {
             // int  sss = 0;
             while (iterator.hasNext()) {
-                detail = String.format(urlMap.get("detail"), iterator.next());
+                jobId = iterator.next();
+                detail = String.format(urlMap.get("detail"), jobId);
                 element = Jsoup.connect(detail)
                         .headers(getHeader())
                         .cookies(getCookies())
@@ -146,8 +211,10 @@ public class Job51Executor {
                         .get().body();
                 element.getElementsByClass("rjlist r3").remove();//删除推荐岗位列表
                 html = element.html().trim();
-                if (isNotEmptySearchResult(html) == true) {
+                boolean checkResult = isNotEmptySearchResult(html);
+                if (checkResult) {
                     iterator.remove();
+                    System.out.println("检查结果：" + checkResult + "，已删除ID：" + jobId + ",剩余：" + job51IdQueue.size());
                     continue;
                 }
             }
@@ -163,7 +230,7 @@ public class Job51Executor {
      * @return
      */
     private static boolean isNotEmptySearchResult(String result) {
-        result
+        result = result
                 .replace("\t", "")
                 .replace("\n", "");
 //                .replace(" ", "");

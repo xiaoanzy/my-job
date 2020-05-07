@@ -27,7 +27,7 @@ public class FileUtil {
 //        String path = FileUtil.class.getResource(fileName).getFile();
 //        System.out.println(path);
 //        File file = new File(fileName);
-        File file = new File("config/filter.config");// 参数为空
+        File file = new File(fileName);// 参数为空
         BufferedReader reader = null;
         ArrayList<String> arrayList = new ArrayList<>();
         try {
