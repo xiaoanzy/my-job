@@ -53,6 +53,7 @@ public class Job51Executor {
         String userName = "czjhxa@163.com", passWord = "AaLl!@1076418191";
         Connection.Response response = doLogin(userName, passWord);
         Document parse = Jsoup.parse(response.body());
+        System.out.println(parse);
         Job51Data.setCookies(response.cookies());//设置用户状态
         System.out.println(response.cookies());
         Job51Data.setFindICount(getWhoLookingAtMe());//设置谁看过我
@@ -63,7 +64,7 @@ public class Job51Executor {
         System.out.println(job51IdQueue.size());
         filterSearchList();
         System.out.println(job51IdQueue.size());
-        submitData();
+        // submitData();
         e = System.currentTimeMillis();
         System.out.println("耗时间：" + (e - s));
     }
