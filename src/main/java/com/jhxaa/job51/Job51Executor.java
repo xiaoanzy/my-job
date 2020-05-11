@@ -87,6 +87,7 @@ public class Job51Executor {
         System.out.println(String.format("已爬取数据%s条", job51IdQueue.size()));
         filterSearchList();
         System.out.println(String.format("清洗后数据%s条", job51IdQueue.size()));
+        insertUrlList();
         submitData();
         e = System.currentTimeMillis();
         System.out.println("耗时间：" + (e - s));
@@ -96,7 +97,6 @@ public class Job51Executor {
 //        String jobId = getJobId(job51IdQueue);
 //        String text = "?rand=" + Math.random() + "&jsoncallback=jQuery18300098957260373327_" + System.currentTimeMillis() + "&jobid=" + getJobId(job51IdQueue) + "&prd=search.51job.com&prp=01&cd=search.51job.com&cp=01&resumeid=&cvlan=&coverid=&qpostset=&elementname=delivery_jobid&deliverytype=2&deliverydomain=%2F%2Fi.51job.com&language=c&imgpath=%2F%2Fimg03.51jobcdn.com&_=" + System.currentTimeMillis();
 //        System.out.println(text);
-
         return urlList.get(index);
     }
 
@@ -105,20 +105,36 @@ public class Job51Executor {
      */
     private static void insertUrlList() {
         LinkedList<String> linkedList = new LinkedList<>();
-        List<String> list = (LinkedList) job51IdQueue;
-        int length = list.size();
+        int length = job51IdQueue.size();
         int num = 0;
-        for (int i = 0; i < length; i++) {
-            linkedList.add(list.get(i));
+        int i = 0;
+        Iterator<String> iterator = job51IdQueue.iterator();
+        while (iterator.hasNext()) {
+            i++;
+            linkedList.add(iterator.next());
             if (i % 30 == 0) {
                 num = num + i;
                 saveUrl(linkedList);
                 linkedList.clear();
             }
-            if (length == i + 1) {
+            if (length == i) {
                 saveUrl(linkedList);
             }
         }
+        //      List<String> list = (List<String>) job51IdQueue;
+//        int length = list.size();
+//        int num = 0;
+//        for (int i = 0; i < length; i++) {
+//            linkedList.add(list.get(i));
+//            if (i % 30 == 0) {
+//                num = num + i;
+//                saveUrl(linkedList);
+//                linkedList.clear();
+//            }
+//            if (length == i + 1) {
+//                saveUrl(linkedList);
+//            }
+//        }
     }
 
     /**
@@ -158,8 +174,13 @@ public class Job51Executor {
      */
     private static void submitData() {// map.put("jsoncallback", "jQuery183005098957260373327_1588261608907");
         System.out.println("正在分批提交");
+        System.out.println("=====================");
+        System.out.println(JSON.toJSONString(urlList));
+        System.out.println("=====================");
+        String submit = null;
         for (int i = 0; i < urlList.size(); i++) {
-            String submit = urlMap.get("submit") + getParams(i);
+            System.out.println(String.format("剩余提交个数【%s】", urlList.size() - i));
+            submit = urlMap.get("submit") + getParams(i);
             Document document = null;
             String body = null;
             try {
@@ -186,8 +207,27 @@ public class Job51Executor {
                     .replace(" ", "")
                     .replace("</span>", "").trim();
             System.out.println(center);
+            sleep(3000);
         }
         System.out.println("完成分批提交");
+        exitSystem();
+    }
+
+    private static void sleep(int sleep) {
+        int i = (int) (Math.random() * sleep);
+        try {
+            Thread.sleep(i);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 关闭系统
+     */
+    private static void exitSystem() {
+        System.out.println("已退出系统...");
+        System.exit(0);
     }
 
     /**
