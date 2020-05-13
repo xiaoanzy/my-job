@@ -10,6 +10,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Map;
 
+@Deprecated
 public class NetUtil {
 
     private static String cookies;

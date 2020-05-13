@@ -16,6 +16,7 @@ import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
+@Deprecated
 public class Job51Executor {
 
     private static Map<String, String> urlMap = new HashMap<>();
@@ -40,6 +41,20 @@ public class Job51Executor {
             urlMap.put("", "");
         }
     }
+
+
+    public static void getUserSessionByCookise(String cookie) {
+        try {
+            Jsoup.connect("")
+                    .headers(null)
+                    .cookie("cookie", cookie)
+                    .post();
+        } catch (IOException e
+        ) {
+            e.printStackTrace();
+        }
+    }
+
 
     /**
      * 已有cookies登录
@@ -67,31 +82,83 @@ public class Job51Executor {
         setUrlData();
     }
 
-    public static void main(String[] args) throws IOException {
-        long s, e;
-        s = System.currentTimeMillis();
-        boolean isOk = true;
-        if (isOk) {
-            String userName = "", passWord = "";
-            Connection.Response response = doLogin(userName, passWord);
-            Document parse = Jsoup.parse(response.body());
-            Job51Data.setCookies(response.cookies());//设置用户状态
-            Job51Data.setFindICount(getWhoLookingAtMe());//设置谁看过我
-            Job51Data.setUserName(parse.getElementsByClass("uname e_icon at").text());//设置用户名称
-            Job51Data.setSendCount(getSendCount(parse));
-        } else {
-            Job51Data.setCookies(strToCookies());//设置用户状态
+    public static void testLogin() {
+        String cookies = null;
+        ArrayList<String> list = FileUtil.readFileByLines("config/cookies.config");
+        for (String s : list) {
+            cookies = s;
         }
-        String searchName = "java";
-        collectBySearchResultName(searchName, 1, 10);
-        System.out.println(String.format("已爬取数据%s条", job51IdQueue.size()));
-        filterSearchList();
-        System.out.println(String.format("清洗后数据%s条", job51IdQueue.size()));
-        insertUrlList();
-        submitData();
-        e = System.currentTimeMillis();
-        System.out.println("耗时间：" + (e - s));
+        String loginUrl = "https://i.51job.com/userset/my_51job.php";
+        Connection.Response response = null;
+        try {
+            response = Jsoup.
+                    connect(loginUrl)
+                    .method(Connection.Method.GET)
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
+                    .header("Accept-Encoding", "gzip, deflate, br")
+                    .header("Accept-Language", "zh-CN,zh;q=0.9")
+                    .header("Cache-Control", "max-age=0")
+                    .header("Connection", "keep-alive")
+                    .header("Host", "i.51job.com")
+                    .header("Referer", "https://login.51job.com/login.php")
+                    .header("Sec-Fetch-Dest", "document")
+                    .header("Sec-Fetch-Mode", "navigate")
+                    .header("Sec-Fetch-Site", "same-site")
+                    .header("Sec-Fetch-User", "?1")
+                    .header("Upgrade-Insecure-Requests", "1")
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.7 Safari/537.36")
+//                    .header("Cookie", cookies)
+                    .cookie("Cookie", cookies)
+//                    .cookies(getCookies())
+//                    .data(getLoginData(userName, passWord))
+                    .ignoreContentType(true)
+                    .execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        response.charset("gbk");
+
+        try {
+            System.out.println(response.parse());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
+    public static void main(String[] args) {
+        testLogin();
+    }
+//    public static void main(String[] args) throws IOException {
+//        long s, e;
+//        s = System.currentTimeMillis();
+//        boolean isOk = true;
+//        if (isOk) {
+////            String userName = "", passWord = "";
+//            Connection.Response response = doLogin(userName, passWord);
+//            Document parse = Jsoup.parse(response.body());
+//            Element elementById = parse.getElementById("account_err");
+//            if (EmptyUtil.isNotEmpty(elementById)) {
+//                System.out.println(elementById.html());
+//                exitSystem();
+//            }
+//            Job51Data.setCookies(response.cookies());//设置用户状态
+//            Job51Data.setFindICount(getWhoLookingAtMe());//设置谁看过我
+//            Job51Data.setUserName(parse.getElementsByClass("uname e_icon at").text());//设置用户名称
+//            Job51Data.setSendCount(getSendCount(parse));
+//        } else {
+//            Job51Data.setCookies(strToCookies());//设置用户状态
+//        }
+//        String searchName = "java";
+//        collectBySearchResultName(searchName, 1, 10);
+//        System.out.println(String.format("已爬取数据%s条", job51IdQueue.size()));
+//        filterSearchList();
+//        System.out.println(String.format("清洗后数据%s条", job51IdQueue.size()));
+//        System.out.println(JSONObject.toJSONString(job51IdQueue));
+//        insertUrlList();
+//        submitData();
+//        e = System.currentTimeMillis();
+//        System.out.println("耗时间：" + (e - s));
+//    }
 
     private static String getParams(int index) {
 //        String jobId = getJobId(job51IdQueue);
@@ -349,6 +416,7 @@ public class Job51Executor {
         return result;
     }
 
+
     /**
      * jsonp格式转换json格式
      *
@@ -356,6 +424,8 @@ public class Job51Executor {
      * @return
      */
     public static JSONObject parseJSONP(String jsonp) {
+//        JSONPObject jsonpObject = new JSONPObject(jsonp);
+//        jsonpObject.toJSONString();
         int startIndex = jsonp.indexOf("(");
         int endIndex = jsonp.lastIndexOf(")");
         String json = jsonp.substring(startIndex + 1, endIndex);
@@ -538,7 +608,6 @@ public class Job51Executor {
     static class Job51Data {
 
         private static String userName;
-
         private static Integer findICount;
         private static Integer sendCount;
         private static Map<String, String> cookies;

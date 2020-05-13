@@ -19,9 +19,6 @@ public class AppTest {
      */
     @Test
     public void shouldAnswerWithTrue() {
-        while (true) {
-            int i = (int) (Math.random() * 1001) + 1001;
-            System.out.println(i);
-        }
+
     }
 }

@@ -39,7 +39,7 @@ public class EmptyUtil {
         if (obj == null) return true;
         if (obj instanceof CharSequence) return ((CharSequence) obj).length() == 0;
         if (obj instanceof Collection) return ((Collection) obj).isEmpty();
-        if (obj instanceof Map) return ((Map) obj).isEmpty() || ((Map) obj).size() == 0;
+        if (obj instanceof Map) return ((Map) obj).isEmpty();
         if (obj instanceof Integer) return (Integer) obj == 0;
         if (obj instanceof Object[]) {
             Object[] object = (Object[]) obj;

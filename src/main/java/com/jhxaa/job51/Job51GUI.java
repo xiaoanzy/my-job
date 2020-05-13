@@ -1,79 +1,44 @@
 package com.jhxaa.job51;
 
+import com.jhxaa.JobGUI;
 import com.jhxaa.util.EmptyUtil;
-
-import java.util.Scanner;
 
 /**
  * 界面
  */
-public class Job51GUI {
+public class Job51GUI extends JobGUI {
 
+    private static Job51Data job51Data;
+    private Job51Executor job51Executor = null;
 
-    /**
-     * 菜单
-     */
-    private void menu() {
-        Scanner scanner = new Scanner(System.in);
-        while (true) {
-            System.out.println("================================");
-            System.out.println("=   1.进入51job");
-            System.out.println("=   2.进入智联招聘");
-            System.out.println("=   3.关于");
-            System.out.println("=   4.退出应用");
-            System.out.println("=   请选择：");
-            System.out.println("==============V 1.0=============");
-            switch (scanner.next()) {
-                case "1":
-
-                    break;
-                case "2":
-                    break;
-                case "3":
-                    break;
-                case "4":
-                    clear();
-                    System.out.println("正在退出应用，请稍后");
-                    System.exit(0);
-                    break;
-                default:
-                    System.out.println("请选择正确的选项");
-                    continue;
-            }
-            clear();
+    public Job51GUI() {
+        super();
+        if (EmptyUtil.isEmpty(job51Executor)) {
+            job51Executor = new Job51Executor();
         }
     }
 
-    /**
-     * 登录
-     */
-    private void login() {
-        Scanner scanner = new Scanner(System.in);
-        String userName = null, passWord = null;
+    public void login() {
         while (true) {
             System.out.println("请输入账号：");
-            userName = scanner.nextLine();
+            String username = scanner.nextLine();
             System.out.println("请输入密码：");
-            passWord = scanner.nextLine();
-            if (EmptyUtil.isEmptyString(userName) || EmptyUtil.isEmptyString(passWord)) {
-                System.out.println("账号或密码不能为空！");
-                continue;
-            }
-            break;
+            String passWord = scanner.nextLine();
+
         }
+    }
+
+    public void init() {
 
     }
+
 
     /**
-     * 清理屏幕
+     * 运行51job模块
      */
-    private void clear() {
-        for (int i = 0; i < 200; i++) {
-            System.out.println(" ");
-        }
-    }
-
-    public void start() {
+    public void run() {
 
     }
+
+
 }
