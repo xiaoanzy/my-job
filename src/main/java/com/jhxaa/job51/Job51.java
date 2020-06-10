@@ -2,7 +2,6 @@ package com.jhxaa.job51;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONPObject;
 import com.jhxaa.util.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -31,6 +30,8 @@ public class Job51 {
     private Map<String, String> accessUrl = null;
     //公司信息map
     private Map<String, String> unitInfo = new HashMap<>();
+
+    private Map<String, Integer> filterCount = new HashMap<>();
 
     public Job51() {
         init();
@@ -77,6 +78,31 @@ public class Job51 {
     private static void saveUrl(Set<String> set) {
         String text = "?rand=" + Math.random() + "&jsoncallback=jQuery18300098957260373327_" + System.currentTimeMillis() + "&jobid=" + getJobId(set) + "&prd=search.51job.com&prp=01&cd=search.51job.com&cp=01&resumeid=&cvlan=&coverid=&qpostset=&elementname=delivery_jobid&deliverytype=2&deliverydomain=%2F%2Fi.51job.com&language=c&imgpath=%2F%2Fimg03.51jobcdn.com&_=" + System.currentTimeMillis();
         urlList.add(text);
+    }
+
+    /**
+     * jsonp格式转换json格式
+     *
+     * @param jsonp
+     * @return
+     */
+    public static JSONObject parseJSONP(String jsonp) {
+//        JSONPObject jsonpObject = new JSONPObject(jsonp);
+//        jsonpObject.toJSONString();
+        int startIndex = jsonp.indexOf("(");
+        int endIndex = jsonp.lastIndexOf(")");
+        String json = jsonp.substring(startIndex + 1, endIndex);
+
+        return JSON.parseObject(json);
+    }
+
+    public void showFilterCountInfo() {
+        System.out.println("================================================");
+        String sss = null;
+        for (Map.Entry<String, Integer> entry : filterCount.entrySet()) {
+            sss = String.format("过滤原因[%s],出现次数[%s]", entry.getKey(), entry.getValue());
+            System.out.println(sss);
+        }
     }
 
     public List<String> getUrlList() {
@@ -238,15 +264,21 @@ public class Job51 {
                 if (checkResult) {
                     unitName = unitInfo.get(jobId);
                     iterator.remove();
+                    String filterKey = String.valueOf(notEmptySearchResult.get("why"));
                     //检查结果[%s],已过滤ID[%s],过滤公司的名称[%s],过滤原因[%s],剩余可用公司个数[%s]
                     String format = String.format("检查结果:::[%s],已过滤ID:::[%s]:::,过滤公司的名称:::[%s]:::,过滤原因:::[%s]:::,剩余可用公司个数:::[%s]",
                             checkResult,
                             jobId,
                             unitName,
-                            String.valueOf(notEmptySearchResult.get("why")),
+                            filterKey,
                             unitInfo.size()
                     );
                     System.out.println(format);
+                    if (filterCount.get(filterKey) != null) {
+                        filterCount.put(filterKey, filterCount.get(filterKey) + 1);
+                    } else {
+                        filterCount.put(filterKey, 1);
+                    }
                     continue;
                 }
             }
@@ -276,12 +308,19 @@ public class Job51 {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            JSONObject parseJSONP = JSON.parseObject(new JSONPObject(body).toJSONString());
-            String string = parseJSONP.getJSONObject("content").getJSONObject("content").getString("html");
-            Document parse = Jsoup.parse(string);
-            String center = parse.getElementsByClass("stage s2 center").html();
-            center = StringUtil.replaceSubmitResult(center);
-            System.out.println(center);
+            body = body.replaceAll("[^\\u4e00-\\u9fa5]", "");
+            System.out.println(body);
+//            body = body
+//                    .replace("\n","")
+//                    .replace("</body>","")
+//                    .replace("<body>","");
+//            body = Jsoup.parse(body).body().html().replace("&quot;","").replace("\\","");
+//            JSONObject parseJSONP = parseJSONP(body);
+//            String string = parseJSONP.getJSONObject("content").getJSONObject("content").getString("html");
+//            Document parse = Jsoup.parse(string);
+//            String center = parse.getElementsByClass("stage s2 center").html();
+//            center = StringUtil.replaceSubmitResult(center);
+//            System.out.println(center);
             SystemUtil.sleep(3000);
         }
         System.out.println("完成分批提交");

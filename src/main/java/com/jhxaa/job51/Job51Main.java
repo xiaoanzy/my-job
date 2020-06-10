@@ -1,6 +1,5 @@
 package com.jhxaa.job51;
 
-import com.alibaba.fastjson.JSON;
 import com.jhxaa.util.FileUtil;
 import org.jsoup.nodes.Element;
 
@@ -21,9 +20,11 @@ public class Job51Main {
     public static void main(String[] args) {
         String cookie = list.get(0);
         Element element = job51.doLoginByCookie(cookie);
-        job51.collectBySearchResultName("java", 1, 30, cookie);
+        job51.collectBySearchResultName("java", 1, 20, cookie);
         job51.filterUnitInfo(cookie);
         job51.insertUrlList();
-        System.out.println(JSON.toJSONString(job51.getUrlList()));
+        job51.showFilterCountInfo();
+        // System.out.println(JSON.toJSONString(job51.getUrlList()));
+        job51.submitData(cookie);
     }
 }
