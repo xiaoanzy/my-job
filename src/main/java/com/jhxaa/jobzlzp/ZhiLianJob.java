@@ -4,9 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.jhxaa.util.FileUtil;
+import org.openqa.selenium.chrome.ChromeDriver;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created with IntelliJ IDEA.
@@ -18,6 +20,15 @@ import java.util.List;
 public class ZhiLianJob {
 
     private static List<String> disableList = FileUtil.readFileByLines("./config/filter.config");
+
+    public static void main(String[] args) {
+        System.setProperty("webdriver.chrome.driver", "./config/browser_core/chromedriver.exe");
+//        System.setProperty("webdriver.chrome.driver", "C:\\Users\\xiaoan\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe");
+        ChromeDriver driver = new ChromeDriver();
+        driver.get("https://www.baidu.com/");
+        driver.manage().window().maximize();//浏览器最大化
+        driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);//超时等待30秒
+    }
 
     /**
      * 得到json
@@ -91,6 +102,5 @@ public class ZhiLianJob {
         }
         return false;
     }
-
 
 }
